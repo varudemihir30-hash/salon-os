@@ -43,6 +43,27 @@ export default function Setup({ onComplete }) {
     setTimeout(() => onComplete(config), 1800);
   };
 
+  const loadDemoData = () => {
+    const config = { 
+      salon: { name: 'Maison de Beauté', city: 'Mumbai', address: '14 Wodehouse Road, Colaba', gst: '27AADCB2230M1Z2', phone: '+91 98200 12345', website: 'maisondebeaute.com' },
+      comms: { whatsapp: '+91 98200 12345', senderName: 'Maison de Beauté', email: 'hello@maisondebeaute.com' },
+      targets: { monthlyRevenue: '850000', bookingsTarget: '400', avgTicket: '2100' },
+      services: [
+        { name: 'Signature Balayage', category: 'Hair', price: '4500', duration: '120' },
+        { name: 'Keratin Treatment', category: 'Hair', price: '6000', duration: '150' },
+        { name: 'Bridal Makeup', category: 'Makeup', price: '12000', duration: '180' }
+      ],
+      staff: [
+        { name: 'Meera K.', role: 'Senior Stylist', phone: '+91 98111 22222' },
+        { name: 'Sunita R.', role: 'Colorist', phone: '+91 98111 33333' }
+      ],
+      setupAt: new Date().toISOString()
+    };
+    localStorage.setItem(SETUP_KEY, JSON.stringify(config));
+    setDone(true);
+    setTimeout(() => onComplete(config), 1800);
+  };
+
   if (done) {
     return (
       <div className="min-h-screen bg-base flex flex-col items-center justify-center gap-6 animate-in zoom-in-95 duration-700">
@@ -275,7 +296,12 @@ export default function Setup({ onComplete }) {
           </div>
         </div>
 
-        <p className="text-center text-xs text-muted mt-4">All data is saved locally. You can update everything from Settings → Preferences.</p>
+        <div className="mt-6 flex flex-col items-center gap-4">
+          <p className="text-center text-xs text-muted">All data is saved locally. You can update everything from Settings → Preferences.</p>
+          <button onClick={loadDemoData} className="text-xs font-semibold text-gold border border-gold/30 hover:bg-gold/10 px-5 py-2.5 rounded-pill transition-colors flex items-center gap-2 shadow-[0_0_15px_rgba(201,168,76,0.15)]">
+            <span>⚡️ Skip Setup & Load Demo Data</span>
+          </button>
+        </div>
       </div>
     </div>
   );
