@@ -9,6 +9,15 @@ import { format, parseISO } from 'date-fns';
 
 export default function Staff() {
   const [selectedStaff, setSelectedStaff] = useState(null);
+  const [isAdding, setIsAdding] = useState(false);
+
+  // Expose mock list in state to allow push
+  const [staffList, setStaffList] = useState(MOCK_STAFF);
+
+  const handleAddStaff = (newStaff) => {
+    setStaffList([newStaff, ...staffList]);
+    setIsAdding(false);
+  };
 
   if (selectedStaff) {
     return <StaffDetail staff={selectedStaff} onBack={() => setSelectedStaff(null)} />;
@@ -19,13 +28,13 @@ export default function Staff() {
       <header className="flex items-center justify-between mb-8">
         <div>
           <h2 className="text-3xl font-display text-primary tracking-widest uppercase mb-1">Staff Management</h2>
-          <p className="text-sm text-secondary tracking-wide">Manage your {MOCK_STAFF.length} team members</p>
+          <p className="text-sm text-secondary tracking-wide">Manage your {staffList.length} team members</p>
         </div>
-        <Button>Add Staff Member</Button>
+        <Button onClick={() => setIsAdding(true)}>Add Staff Member</Button>
       </header>
 
       <div className="grid grid-cols-3 gap-6">
-        {MOCK_STAFF.map(staff => (
+        {staffList.map(staff => (
           <Card key={staff.id} className="flex flex-col relative overflow-hidden group cursor-pointer hover:border-gold/50 transition-colors" onClick={() => setSelectedStaff(staff)}>
             <div className={`absolute top-0 left-0 w-full h-1 ${staff.status === 'Present' ? 'bg-accent-mint' : staff.status === 'On Break' ? 'bg-gold' : 'bg-accent-rose'}`}></div>
             <div className="absolute top-4 right-4">
@@ -64,6 +73,105 @@ export default function Staff() {
             </div>
           </Card>
         ))}
+      </div>
+
+      {isAdding && <AddStaffModal onClose={() => setIsAdding(false)} onAdd={handleAddStaff} />}
+    </div>
+  );
+}
+
+function AddStaffModal({ onClose, onAdd }) {
+  const [step, setStep] = useState(1); // 1 = form, 2 = success
+  const [formData, setFormData] = useState({
+    name: '', role: 'Senior Stylist', phone: '', specializations: 'Hair Coloring, Styling'
+  });
+
+  const handleSubmit = (e) => {
+    e.preventDefault();
+    setStep(2);
+    setTimeout(() => {
+      onAdd({
+        id: Date.now(),
+        name: formData.name,
+        role: formData.role,
+        avatar: `https://ui-avatars.com/api/?name=${encodeURIComponent(formData.name)}&background=18181C&color=C9A84C`,
+        rating: 0,
+        clientsServed: 0,
+        status: 'Present',
+        specializations: formData.specializations.split(',').map(s => s.trim()),
+        joinDate: new Date().toISOString()
+      });
+    }, 1500);
+  };
+
+  const inputClass = "w-full bg-elevated border border-border px-4 py-3 rounded-lg text-sm text-primary placeholder:text-muted focus:outline-none focus:border-gold transition-all";
+  const labelClass = "text-[10px] text-muted uppercase tracking-widest font-semibold block mb-1.5";
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+      <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={onClose} />
+      <div className="relative z-10 w-full max-w-lg bg-card border border-gold/20 rounded-2xl shadow-2xl overflow-hidden animate-in slide-in-from-bottom-8 fade-in duration-300">
+        
+        {step === 1 ? (
+          <>
+            <div className="px-6 py-5 border-b border-border flex items-center justify-between bg-elevated/30">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-full bg-gold/10 border border-gold/30 flex items-center justify-center">
+                  <span className="text-xl text-gold">+</span>
+                </div>
+                <div>
+                  <h2 className="text-xl font-display text-primary tracking-wide">New Staff Member</h2>
+                  <p className="text-xs text-secondary">Add a new professional to your salon</p>
+                </div>
+              </div>
+              <button onClick={onClose} className="text-muted hover:text-gold transition-colors text-xl">&times;</button>
+            </div>
+
+            <form onSubmit={handleSubmit} className="p-6 space-y-4">
+              <div>
+                <label className={labelClass}>Full Name *</label>
+                <input required value={formData.name} onChange={e => setFormData(p => ({ ...p, name: e.target.value }))} className={inputClass} placeholder="e.g. Aditi Sharma" />
+              </div>
+
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className={labelClass}>Role *</label>
+                  <select value={formData.role} onChange={e => setFormData(p => ({ ...p, role: e.target.value }))} className={inputClass}>
+                    <option>Senior Stylist</option>
+                    <option>Colorist</option>
+                    <option>Junior Stylist</option>
+                    <option>Manicurist</option>
+                    <option>Spa Therapist</option>
+                  </select>
+                </div>
+                <div>
+                  <label className={labelClass}>Phone Number</label>
+                  <input value={formData.phone} onChange={e => setFormData(p => ({ ...p, phone: e.target.value }))} className={inputClass} placeholder="+91 98xxx xxxxx" />
+                </div>
+              </div>
+
+              <div>
+                <label className={labelClass}>Specializations (comma separated) *</label>
+                <input required value={formData.specializations} onChange={e => setFormData(p => ({ ...p, specializations: e.target.value }))} className={inputClass} placeholder="e.g. Balayage, Keratin, Bridal" />
+              </div>
+
+              <div className="flex justify-end gap-3 pt-4 border-t border-border mt-6">
+                <Button type="button" variant="secondary" onClick={onClose}>Cancel</Button>
+                <Button type="submit">Add Staff Member</Button>
+              </div>
+            </form>
+          </>
+        ) : (
+          <div className="p-12 text-center flex flex-col items-center">
+            <div className="w-20 h-20 rounded-full bg-gold/10 border border-gold/30 flex items-center justify-center shadow-[0_0_30px_rgba(201,168,76,0.3)] mb-6 animate-in zoom-in duration-500">
+              <Star className="w-10 h-10 fill-gold text-gold" />
+            </div>
+            <h3 className="text-2xl font-display text-gold tracking-widest mb-2 animate-in fade-in slide-in-from-bottom-2 duration-500 delay-150">STAFF ADDED</h3>
+            <p className="text-secondary tracking-wide text-sm animate-in fade-in slide-in-from-bottom-2 duration-500 delay-300">
+              {formData.name} is now part of the Salon OS team.
+            </p>
+          </div>
+        )}
       </div>
     </div>
   );
